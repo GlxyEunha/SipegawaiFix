@@ -12,16 +12,23 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected $table = 'users';
+    protected $primaryKey = 'nip';
+    public $incrementing = false; // Karena nip bukan auto-increment
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
      */
     protected $fillable = [
+        'nip',
         'name',
         'email',
         'password',
         'role',
+        'unit',
+        'tanggal',
     ];
 
     /**
@@ -42,5 +49,15 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'tanggal' => 'date',
     ];
+
+    /**
+     * Relasi ke tabel history.
+     * Seorang user bisa memiliki banyak history rolling unit.
+     */
+    public function histories()
+    {
+        return $this->hasMany(History::class, 'nip', 'nip');
+    }
 }
