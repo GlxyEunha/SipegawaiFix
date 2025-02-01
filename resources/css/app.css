@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Transition for smooth collapse */
+#sidebar {
+    width: 16rem; /* Default width */
+    transition: width 0.3s ease-in-out;
+    overflow: hidden; /* Mencegah konten keluar saat menyusut */
+}
+
+.menu-text {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Collapsed sidebar */
+#sidebar.collapsed {
+    width: 5rem; /* Lebar sidebar saat ditutup */
+}
+
+/* Hide text when sidebar is collapsed */
+#sidebar.collapsed .menu-text {
+    display: none;
+}
+
+/* Memastikan logo tetap proporsional */
+#system-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain; /* Menjaga aspek rasio gambar */
+    transition: all 0.3s ease-in-out;
+}
+
+/* Center logo when sidebar is collapsed */
+#sidebar.collapsed #system-logo {
+    margin: 0 auto;
+    display: block;
+}
+
+/* Rotate toggle button when collapsed */
+#toggle-btn i {
+    transition: transform 0.3s ease-in-out;
+}
+
+#sidebar.collapsed #toggle-btn i {
+    transform: rotate(180deg);
+}
