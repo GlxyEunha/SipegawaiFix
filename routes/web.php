@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,8 @@ Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
     Route::get('/admin-sdm/dashboard', function () {
         return view('dashboard.admin_sdm');
     })->name('admin_sdm.dashboard');
+
+    Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
 });
 
 Route::middleware(['auth', 'role:admin_user'])->group(function () {
