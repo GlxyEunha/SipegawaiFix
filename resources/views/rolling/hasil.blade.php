@@ -91,8 +91,8 @@
                                 <td class="px-6 py-4 border-b border-gray-200 text-center">
                                     <form action="{{ route('rolling.accept', ['nip' => $r->nip]) }}" method="POST">
                                         @csrf
-                                        <button class="text-red-600 hover:text-red-900">
-                                            Delete
+                                        <button class="text-green-600 hover:text-green-900">
+                                            Setujui
                                         </button>
                                     </form>
                                 </td>
