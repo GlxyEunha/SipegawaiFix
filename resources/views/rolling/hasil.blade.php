@@ -59,15 +59,14 @@
             </div>
         </div>
     </div>
+    <br>
+    <a href="{{ route('rolling.export') }}" class="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700">
+        Export to Excel
+    </a>
 
     <div class="mt-8">
         <div class="flex flex-col">
             <div class="overflow-x-auto">
-                <div class="min-w-full shadow border-b border-gray-200">
-                    <a href="{{ url('export-rolling-history') }}" class="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700">
-                        Export to Excel
-                    </a>
-                </div>
                 <div class="min-w-full shadow border-b border-gray-200">
                     <table class="min-w-full">
                         <thead>
@@ -90,9 +89,12 @@
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $r->old_unit }}</td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $r->new_unit }}</td>
                                 <td class="px-6 py-4 border-b border-gray-200 text-center">
-                                    <button class="text-indigo-600 hover:text-indigo-900">
-                                        Accept
-                                    </button>
+                                    <form action="{{ route('rolling.accept', ['nip' => $r->nip]) }}" method="POST">
+                                        @csrf
+                                        <button class="text-red-600 hover:text-red-900">
+                                            Delete
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             @endforeach
@@ -102,5 +104,6 @@
             </div>
         </div>
     </div>
+
 
 @endsection

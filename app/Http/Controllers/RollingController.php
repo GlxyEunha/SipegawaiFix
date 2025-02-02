@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\RollingHistory;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class RollingController extends Controller
 {
@@ -58,6 +62,42 @@ class RollingController extends Controller
 
     public function exportExcel()
     {
-        return Excel::download(new RollingExport, 'hasil_rolling.xlsx');
+        // Ambil data dari tabel `users` dan `rolling_histories` yang memiliki nip yang sama
+        $rollings = RollingHistory::where('is_accepted', false)
+            ->join('users', 'users.nip', '=', 'rolling_histories.nip')
+            ->select('users.name', 'users.nip', 'rolling_histories.old_unit', 'rolling_histories.new_unit')
+            ->get();
+
+        // Buat spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header kolom
+        $sheet->setCellValue('A1', 'Name');
+        $sheet->setCellValue('B1', 'NIP');
+        $sheet->setCellValue('C1', 'Unit Sekarang');
+        $sheet->setCellValue('D1', 'Unit Baru');
+
+        // Isi data
+        $row = 2;
+        foreach ($rollings as $rolling) {
+            $sheet->setCellValue('A' . $row, $rolling->name);
+            $sheet->setCellValue('B' . $row, $rolling->nip);
+            $sheet->setCellValue('C' . $row, $rolling->old_unit);
+            $sheet->setCellValue('D' . $row, $rolling->new_unit);
+            $row++;
+        }
+
+        // Simpan dan download file Excel
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'rolling_history.xlsx';
+
+        return new StreamedResponse(function () use ($writer) {
+            $writer->save('php://output');
+        }, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment;filename="' . $fileName . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 }
