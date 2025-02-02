@@ -71,29 +71,27 @@
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">NIP</th>
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                                <th class="px-6 py-3 bg-gray-50"></th>
+                                <th class="px-6 py-3 bg-gray-50">Action</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white">
                             @foreach ($users as $user)
                             <tr>
                                 <td class="px-6 py-4 border-b border-gray-200">
-                                <div class="text-sm leading-5 font-medium text-gray-900">{{ $user->name }}</div>
-                                        <div class="text-sm leading-5 text-gray-500">{{ $user->email }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
+                                    <div class="text-sm text-gray-500">{{ $user->email }}</div>
                                 </td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $user->nip }}</td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $user->unit }}</td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $user->tanggal }}</td>
-                                <td class="px-6 py-4 border-b border-gray-200 text-right">
-                                    <button 
-                                        class="text-indigo-600 hover:text-indigo-900 open-modal-btn"
-                                        data-id="{{ $user->id }}" 
+                                <td class="px-6 py-4 border-b border-gray-200 text-center">
+                                    <button class="text-indigo-600 hover:text-indigo-900 open-modal-btn"
+                                        data-id="{{ $user->nip }}"
                                         data-name="{{ $user->name }}"
                                         data-nip="{{ $user->nip }}"
                                         data-unit="{{ $user->unit }}"
-                                        data-tanggal="{{ $user->tanggal }}"
-                                    >
-                                        Lihat Detail
+                                        data-tanggal="{{ $user->tanggal }}">
+                                        Rolling
                                     </button>
                                 </td>
                             </tr>
@@ -114,26 +112,14 @@
             <p id="modal-unit" class="mt-1"></p>
             <p id="modal-tanggal" class="mt-1"></p>
             <br>
-            <form id="rolling-form" method="POST">
+            <form id="rolling-form" action="{{ route('rolling.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="user_id" id="modal-user-id">
+                <input type="hidden" name="nip" id="modal-user-id">
                 <label for="unit" class="block text-sm font-medium text-gray-700">Pilih Unit Baru</label>
-                <select name="unit" id="unit" class="mt-1 block w-full p-2 border rounded">
+                <select name="new_unit" id="new_unit" class="mt-1 block w-full p-2 border rounded">
                     <option value="Subbagian Umum">Subbagian Umum</option>
                     <option value="Seksi P2">Seksi P2</option>
                     <option value="Seksi Adm Manifes">Seksi Adm Manifes</option>
-                    <option value="Seksi Perbendaharaan">Seksi Perbendaharaan</option>
-                    <option value="Seksi PKC I">Seksi PKC I</option>
-                    <option value="Seksi PKC II">Seksi PKC II</option>
-                    <option value="Seksi PKC III">Seksi PKC III</option>
-                    <option value="Seksi PKC IV">Seksi PKC IV</option>
-                    <option value="Seksi PKC V">Seksi PKC V</option>
-                    <option value="Seksi PKC VI">Seksi PKC VI</option>
-                    <option value="Seksi PKC VII">Seksi PKC VII</option>
-                    <option value="Seksi PLI">Seksi PLI</option>
-                    <option value="Seksi KI">Seksi KI</option>
-                    <option value="Seksi PDAD">Seksi PDAD</option>
-                    <option value="PFPD">PFPD</option>
                 </select>
                 <button type="submit" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Simpan</button>
             </form>            
@@ -143,24 +129,19 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Event delegation untuk tombol "Lihat Detail"
             document.querySelectorAll('.open-modal-btn').forEach(button => {
                 button.addEventListener('click', function() {
-                    // Ambil data dari atribut data-*
-                    let id = this.getAttribute('data-id');
                     let name = this.getAttribute('data-name');
                     let nip = this.getAttribute('data-nip');
                     let unit = this.getAttribute('data-unit');
                     let tanggal = this.getAttribute('data-tanggal');
-
-                    // Isi data ke modal
+                    
                     document.getElementById('modal-name').textContent = 'Nama: ' + name;
                     document.getElementById('modal-nip').textContent = 'NIP: ' + nip;
                     document.getElementById('modal-unit').textContent = 'Unit: ' + unit;
                     document.getElementById('modal-tanggal').textContent = 'Tanggal: ' + tanggal;
-                    document.getElementById('modal-user-id').value = id;
-
-                    // Tampilkan modal
+                    document.getElementById('modal-user-id').value = nip;
+                    
                     document.getElementById('modal').classList.remove('hidden');
                 });
             });

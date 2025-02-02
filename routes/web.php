@@ -1,8 +1,10 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RollingController;
+use App\Http\Controllers\AdminSdmController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,14 +31,23 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
 
 Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
-    Route::get('/admin-sdm/dashboard', function () {
-        return view('dashboard.admin_sdm');
-    })->name('admin_sdm.dashboard');
-
+    Route::get('/admin-sdm/dashboard', [AdminSdmController::class, 'index'])->name('admin_sdm.dashboard');
+    Route::get('/admin/rolling', [AdminSdmController::class, 'rolling'])->name('admin_sdm.rolling');
+    Route::get('/admin/pegawai/{nip}/history', [AdminSdmController::class, 'history'])->name('pegawai.history');
+    Route::get('/admin/pegawai/{nip}/rolling', [AdminSdmController::class, 'edit'])->name('pegawai.rolling.form'); // Menampilkan form rolling
+    Route::post('/admin/pegawai/{nip}/rolling', [AdminSdmController::class, 'update'])->name('pegawai.rolling'); // Simpan perubahan rolling unit
+    
     Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
+    
+    Route::get('/data_pegawai', [AdminSdmController::class, 'index'])->name('datapegawai.index');
+
+    Route::get('/rolling', [RollingController::class, 'index'])->name('rolling.index');
+    Route::post('/rolling/store', [RollingController::class, 'store'])->name('rolling.store');
+    Route::get('/hasil', [RollingController::class, 'hasil'])->name('rolling.hasil');
+    Route::post('/hasil/accept/{nip}', [RollingController::class, 'accept'])->name('rolling.accept');
+    Route::get('/hasil/export', [RollingController::class, 'export'])->name('rolling.export');
 });
 
 Route::middleware(['auth', 'role:admin_user'])->group(function () {
@@ -56,3 +67,5 @@ Route::middleware(['auth', 'role:pemutus'])->group(function () {
         return view('dashboard.pemutus');
     })->name('pemutus.dashboard');
 });
+
+require __DIR__.'/auth.php';

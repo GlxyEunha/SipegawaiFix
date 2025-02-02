@@ -16,7 +16,17 @@ class AdminSdmController extends Controller
             return abort(403, 'Unauthorized action.');
         }
 
-        $users = User::get();
+        $users = User::all();
+        return view('dashboard.admin_sdm', compact('users'));
+    }
+
+    public function rolling()
+    {
+        if (Auth::user()->role !== 'admin_sdm') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        $users = User::all();
         return view('rolling.index', compact('users'));
     }
 
