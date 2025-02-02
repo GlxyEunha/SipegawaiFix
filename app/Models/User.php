@@ -28,7 +28,7 @@ class User extends Authenticatable
         'password',
         'role',
         'unit',
-        'tanggal',
+        'tanggal_naik_gaji',
     ];
 
     /**

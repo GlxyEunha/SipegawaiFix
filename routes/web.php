@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GajiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\ProfileController;
@@ -48,6 +49,10 @@ Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
     Route::get('/hasil', [RollingController::class, 'hasil'])->name('rolling.hasil');
     Route::post('/hasil/accept/{nip}', [RollingController::class, 'accept'])->name('rolling.accept');
     Route::get('/hasil/export', [RollingController::class, 'export'])->name('rolling.export');
+
+    Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');
+    Route::post('/gaji/accept/{nip}', [GajiController::class, 'setujui'])->name('gaji.setujui');
+
 });
 
 Route::middleware(['auth', 'role:admin_user'])->group(function () {
