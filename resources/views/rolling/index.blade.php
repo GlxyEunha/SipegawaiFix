@@ -1,6 +1,11 @@
 @extends('layouts.master')
 
 @section('body')
+    @if (session('success'))
+        <div class="mt-4 px-4 py-3 bg-green-100 border border-green-400 text-green-700 rounded relative" role="alert">
+            <span class="block sm:inline">{{ session('success') }}</span>
+        </div>
+    @endif
     <h3 class="text-gray-700 text-3xl font-medium">Dashboard</h3>
 
     <div class="mt-4">
@@ -83,14 +88,14 @@
                                 </td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $user->nip }}</td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $user->unit }}</td>
-                                <td class="px-6 py-4 border-b border-gray-200">{{ $user->tanggal }}</td>
+                                <td class="px-6 py-4 border-b border-gray-200">{{ $user->tanggal_naik_gaji }}</td>
                                 <td class="px-6 py-4 border-b border-gray-200 text-center">
                                     <button class="text-indigo-600 hover:text-indigo-900 open-modal-btn"
                                         data-id="{{ $user->nip }}"
                                         data-name="{{ $user->name }}"
                                         data-nip="{{ $user->nip }}"
                                         data-unit="{{ $user->unit }}"
-                                        data-tanggal="{{ $user->tanggal }}">
+                                        data-tanggal="{{ $user->tanggal_naik_gaji }}">
                                         Rolling
                                     </button>
                                 </td>
