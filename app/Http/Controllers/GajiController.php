@@ -21,7 +21,21 @@ class GajiController extends Controller
                         })
                         ->get();
 
-        return view('gaji.index', compact('pegawai'));
+        $jumlahKenaikanGaji = $pegawai->count(); // Hitung jumlah pegawai
+
+        return view('gaji.index', compact('pegawai', 'jumlahKenaikanGaji'));
+    }
+
+    public static function getJumlahKenaikanGaji()
+    {
+        $today = Carbon::now();
+        $threshold = $today->copy()->subMonths(23);
+        $limit = $today->copy()->subMonths(24);
+
+        // Hitung jumlah pegawai yang memenuhi syarat kenaikan gaji
+        return User::where('tanggal_naik_gaji', '<=', $threshold)
+                   ->where('tanggal_naik_gaji', '>', $limit)
+                   ->count();
     }
 
     public function setujui($nip)
