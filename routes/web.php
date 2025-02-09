@@ -65,6 +65,11 @@ Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
 
 Route::middleware(['auth', 'role:admin_user'])->group(function () {
     Route::get('/admin-user/dashboard', [AdminUserController::class, 'index'])->name('admin_user.dashboard');
+    Route::get('/admin-user/upload-data', [AdminUserController::class, 'view_upload'])->name('admin_user.upload');
+    Route::get('/admin-user/generate-akun', [AdminUserController::class, 'generateAccounts'])->name('admin_user.generateAccounts');
+    Route::get('/admin-user/pegawai-impor', [AdminUserController::class, 'import'])->name('admin_user.impor');
+    Route::get('/form_akun', [AdminUserController::class, 'form_akun'])->name('admin_user.index');
+    Route::post('/form_akun/store', [AdminUserController::class, 'store'])->name('admin_user.store');
 });
 
 Route::middleware(['auth', 'role:pegawai'])->group(function () {

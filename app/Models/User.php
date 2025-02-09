@@ -29,6 +29,18 @@ class User extends Authenticatable
         'role',
         'unit',
         'tanggal_naik_gaji',
+        'gol',
+        'jabatan',
+        'kode_jabatan',
+        'kode_unit',
+        'bidang_tugas',
+        'periode_unit_bln',
+        'lama_tg_mas_th',
+        'pendidikan',
+        'tanggal_lahir',
+        'jenis_kelamin',
+        'agama',
+        
     ];
 
     /**
