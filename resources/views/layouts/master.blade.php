@@ -5,16 +5,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
         <meta name="referrer" content="always">
-        {{-- <link rel="canonical" href="{{ request()->url() }}"> --}}
-
-        {{-- <meta name="description" content="{{ $page->description }}"> --}}
-
         <title>SIPEGAWAI</title>
         
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-        {{-- <script src="{{ mix('js/main.js', 'assets/build') }}"></script> --}}
-        
         <!-- Tambahkan CDN untuk jQuery, Alpine.js, Bootstrap, dan Tailwind -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -22,7 +16,15 @@
     </head>
     <body>
         <div x-data="{ sidebarOpen: false }" class="flex h-screen bg-gray-200 font-roboto">
-            @include('layouts.sidebar')
+            @if(auth()->user()->role == 'admin_sdm')
+                @include('layouts.sidebar_admin_sdm')
+            @elseif(auth()->user()->role == 'admin_user')
+                @include('layouts.sidebar_admin_user')
+            @elseif(auth()->user()->role == 'pegawai')
+                @include('layouts.pegawai')
+            @elseif(auth()->user()->role == 'pemutus')
+                @include('layouts.pemutus')
+            @endif
             
             <div class="flex-1 flex flex-col overflow-hidden">
                 @include('layouts.header')

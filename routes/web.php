@@ -8,6 +8,7 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RollingController;
 use App\Http\Controllers\AdminSdmController;
+use App\Http\Controllers\AdminUserController;
 use Illuminate\Auth\Middleware\Authenticate;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
@@ -63,9 +64,7 @@ Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:admin_user'])->group(function () {
-    Route::get('/admin-user/dashboard', function () {
-        return view('dashboard.admin_user');
-    })->name('admin_user.dashboard');
+    Route::get('/admin-user/dashboard', [AdminUserController::class, 'index'])->name('admin_user.dashboard');
 });
 
 Route::middleware(['auth', 'role:pegawai'])->group(function () {
