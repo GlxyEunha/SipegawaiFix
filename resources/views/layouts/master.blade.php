@@ -21,9 +21,9 @@
             @elseif(auth()->user()->role == 'admin_user')
                 @include('layouts.sidebar_admin_user')
             @elseif(auth()->user()->role == 'pegawai')
-                @include('layouts.pegawai')
+                @include('layouts.sidebar_pegawai')
             @elseif(auth()->user()->role == 'pemutus')
-                @include('layouts.pemutus')
+                @include('layouts.sidebar_pemutus')
             @endif
             
             <div class="flex-1 flex flex-col overflow-hidden">
