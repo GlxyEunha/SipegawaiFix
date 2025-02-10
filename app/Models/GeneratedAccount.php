@@ -11,4 +11,6 @@ class GeneratedAccount extends Model
 
     protected $table = 'generated_akun';
     protected $fillable = ['nip', 'name', 'email', 'password'];
+
+    public $timestamps = false;
 }

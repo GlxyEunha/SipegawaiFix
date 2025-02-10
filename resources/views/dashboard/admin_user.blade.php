@@ -70,8 +70,8 @@
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">NIP</th>
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
-                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                                <th class="px-6 py-3 bg-gray-50"></th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Jabatan</th>
+                                <th class="px-6 py-3 bg-gray-50">Action</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white">
@@ -83,18 +83,16 @@
                                 </td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $user->nip }}</td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $user->unit }}</td>
-                                <td class="px-6 py-4 border-b border-gray-200">{{ $user->tanggal }}</td>
-                                <td class="px-6 py-4 border-b border-gray-200 text-right">
-                                    <button 
-                                        class="text-indigo-600 hover:text-indigo-900 open-modal-btn"
-                                        data-id="{{ $user->id }}" 
-                                        data-name="{{ $user->name }}"
-                                        data-nip="{{ $user->nip }}"
-                                        data-unit="{{ $user->unit }}"
-                                        data-tanggal="{{ $user->tanggal }}"
-                                    >
-                                        Lihat Detail
-                                    </button>
+                                <td class="px-6 py-4 border-b border-gray-200">{{ $user->jabatan }}</td>
+                                <td class="px-6 py-4 border-b border-gray-200 text-center">
+                                    <a href="{{ route('users.edit', $user->nip) }}" class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded">Edit</a>
+                                    <form action="{{ route('users.destroy', $user->nip) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded" onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?');">
+                                            Delete
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             @endforeach
@@ -103,5 +101,5 @@
                 </div>
             </div>
         </div>
-    </div>s
+    </div>
 @endsection
