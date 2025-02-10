@@ -33,6 +33,65 @@ class AdminUserController extends Controller
         return view('akun.upload');
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'nip' => 'required|string|unique:users,nip',
+            'role' => 'required|string',
+            'unit' => 'required|string',
+            'tanggal_naik_gaji' => 'required|date',
+            'gol' => 'required|string',
+            'kode_jabatan' => 'required|integer',
+            'kode_unit' => 'required|integer',
+            'bidang_tugas' => 'required|string',
+            'periode_unit_bln' => 'required|integer',
+            'lama_tg_mas_th' => 'required|integer',
+            'pendidikan' => 'required|string',
+            'jenis_kelamin' => 'required|string',
+            'tanggal_lahir' => 'required|date',
+            'agama' => 'required|string',
+        ]);
+
+        // Generate email
+        $firstName = explode(' ', trim($request->name))[0];
+        $randomNumber = rand(100, 999);
+        $email = strtolower($firstName) . $randomNumber . "@gmail.com";
+
+        // Generate random password
+        $password = Str::random(10);
+
+        // Create user
+        $user = User::create([
+            'name' => $request->name,
+            'nip' => $request->nip,
+            'email' => $email,
+            'password' => Hash::make($password),
+            'role' => $request->role,
+            'unit' => $request->unit,
+            'tanggal_naik_gaji' => $request->tanggal_naik_gaji,
+            'gol' => $request->gol,
+            'kode_jabatan' => $request->kode_jabatan,
+            'kode_unit' => $request->kode_unit,
+            'bidang_tugas' => $request->bidang_tugas,
+            'periode_unit_bln' => $request->periode_unit_bln,
+            'lama_tg_mas_th' => $request->lama_tg_mas_th,
+            'pendidikan' => $request->pendidikan,
+            'jenis_kelamin' => $request->jenis_kelamin,
+            'tanggal_lahir' => $request->tanggal_lahir,
+            'agama' => $request->agama,
+        ]);
+
+        GeneratedAccount::create([
+            'name' => $request->name,
+            'nip' => $request->nip,
+            'email' => $email,
+            'password' => $password,
+        ]);
+
+        return redirect()->route('admin_user.index')->with('success', 'Pegawai berhasil ditambahkan!');
+    }
+
     public function import(Request $request)
     {
         $request->validate([
