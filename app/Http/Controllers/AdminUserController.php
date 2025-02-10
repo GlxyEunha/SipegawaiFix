@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\UserImport;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\History;
@@ -10,7 +11,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\GeneratedAccount;
-use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class AdminUserController extends Controller
@@ -70,7 +70,7 @@ class AdminUserController extends Controller
             'nip' => $request->nip,
             'email' => $email,
             'password' => Hash::make($password),
-            'jabatan' => $request->role,
+            'jabatan' => $request->jabatan,
             'role' => $request->role,
             'unit' => $request->unit,
             'tanggal_naik_gaji' => $request->tanggal_naik_gaji,
@@ -154,130 +154,69 @@ class AdminUserController extends Controller
         return redirect()->route('admin_user.dashboard')->with('success', 'User berhasil dihapus');
     }
 
-    public function import(Request $request)
+    public function import()
     {
- 
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls',
-        ]);
-
-        
         try {
-            // Ambil file dari request
-            $file = $request->file('file');
-
-            // Baca data dari file Excel
-            $rows = Excel::toArray([], $file)[0];
-
-            foreach ($rows as $index => $row) {
-                if ($index === 0) continue; // Lewati baris header
-
-                // Pastikan jumlah kolom cukup
-                if (count($row) < 15) {
-                    throw new \Exception("Format file tidak sesuai, jumlah kolom kurang.");
-                }
-
-                // Fungsi untuk mengonversi tanggal
-                function parseDate($date)
-                {
-                    if (empty(trim($date))) {
-                        return null;
-                    }
-
-                    // Jika formatnya angka (Excel serial date)
-                    if (is_numeric($date)) {
-                        return Carbon::instance(Date::excelToDateTimeObject($date))->format('Y-m-d');
-                    }
-
-                    // Jika formatnya string (DD/MM/YYYY)
-                    if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $date)) {
-                        return Carbon::createFromFormat('d/m/Y', $date)->format('Y-m-d');
-                    }
-
-                    return null;
-                }
-
-                // Konversi format tanggal
-                $tanggalNaikGaji = parseDate($row[8]);
-                $tanggalLahir = parseDate($row[12]);
-
-                $rowData = [
-                    'name' => trim($row[0]),
-                    'nip' => trim($row[1]),
-                    'gol' => trim($row[2]),
-                    'jabatan' => trim($row[3]),
-                    'unit' => trim($row[4]),
-                    'kode_jabatan' => trim($row[5]),
-                    'kode_unit' => trim($row[6]),
-                    'bidang_tugas' => trim($row[7]),
-                    'tanggal_naik_gaji' => $tanggalNaikGaji,
-                    'periode_unit_bln' => trim($row[9]),
-                    'lama_tg_mas_th' => trim($row[10]),
-                    'pendidikan' => trim($row[11]),
-                    'tanggal_lahir' => $tanggalLahir,
-                    'jenis_kelamin' => trim($row[13]),
-                    'agama' => trim($row[14]),
-                    'role' => null,
-                    'email' => null, // Email belum dibuat
-                    'password' => null, // Password belum dibuat
-                ];
-
-                // Validasi Data Wajib
-                if (empty($rowData['nip']) || empty($rowData['name']) || empty($rowData['jabatan'])) {
-                    continue;
-                }
-
-                // Cek apakah NIP sudah ada di database
-                if (User::where('nip', $rowData['nip'])->exists()) {
-                    continue;
-                }
-
-                // Simpan ke database User tanpa email dan password
-                User::create($rowData);
+            // Pastikan file diunggah
+            if (!request()->hasFile('file')) {
+                return back()->with('error', 'Tidak ada file yang diunggah.');
             }
 
-            return redirect()->back()->with('success', 'Data berhasil diimport.');
+            // Simpan jumlah user sebelum impor
+            $countBefore = User::count();
+
+            // Lakukan proses impor tanpa email dan password
+            Excel::import(new UserImport, request()->file('file'));
+
+            // Ambil user setelah impor berdasarkan ID terbaru
+            $userAfterImport = User::latest()->take(User::count() - $countBefore)->get();
+
+            // Simpan data yang baru diimpor dalam sesi agar tampil di view
+            session(['pegawaiData' => $userAfterImport]);
+
+            return back()->with('success', 'Impor berhasil, silakan lanjutkan dengan generate akun.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengimport data: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat mengimpor: ' . $e->getMessage());
         }
     }
-
 
     public function generateAccounts()
     {
         try {
-            $users = User::whereNull('email')->get();
+            $allUser = User::whereNull('email')->orWhereNull('password')->get();
 
-            foreach ($users as $user) {
-                // Buat email berdasarkan nama pengguna
-                $firstName = strtolower(str_replace(' ', '', explode(' ', $user->name)[0]));
-                do {
-                    $email = $firstName . rand(100, 999) . "@example.com";
-                } while (User::where('email', $email)->exists());
+            foreach ($allUser as $user) {
+                // Generate email
+                $firstName = explode(' ', trim($user->name))[0];
+                $randomNumber = rand(100, 999);
+                $email = strtolower($firstName) . $randomNumber . "@gmail.com";
 
-                // Generate password acak
+                // Generate random password
                 $password = Str::random(10);
 
-                // Perbarui data user dengan email dan password
+                // Simpan user ke database
                 $user->update([
                     'email' => $email,
-                    'password' => Hash::make($password),
+                    'password' => Hash::make($password)
                 ]);
 
-                // Simpan ke model GeneratedAccount
                 GeneratedAccount::create([
                     'name' => $user->name,
                     'nip' => $user->nip,
                     'email' => $email,
-                    'password' => $password, // Simpan hanya sementara untuk testing
+                    'password' => $password, 
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Akun berhasil dibuat.');
+            session()->forget('pegawaiData');
+
+
+            return redirect()->route('admin_user.upload')->with('success', 'Akun berhasil dibuat untuk semua pengguna.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat membuat akun: ' . $e->getMessage());
+            return redirect()->route('admin_user.upload')->with('error', 'Terjadi kesalahan saat membuat akun: ' . $e->getMessage());
         }
     }
+
 
     public function form_akun()
     {
