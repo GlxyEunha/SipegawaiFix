@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Imports\UserImport;
-use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\History;
+use App\Imports\UserImport;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use App\Models\GeneratedAccount;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Models\GeneratedAccount;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminUserController extends Controller
 {
@@ -148,6 +152,7 @@ class AdminUserController extends Controller
 
     public function destroy($nip)
     {
+        DB::table('generated_akun')->where('nip', $nip)->delete();
         $user = User::where('nip', $nip)->firstOrFail();
         $user->delete();
 
@@ -225,6 +230,44 @@ class AdminUserController extends Controller
         }
 
         return view('akun.form');
+    }
+
+    public function exportExcel()
+    {
+        // Ambil data dari tabel `users` dan `rolling_histories` yang memiliki nip yang sama
+        $akuns = DB::table('generated_akun')->select('name', 'nip', 'email', 'password')->get();
+
+        // Buat spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header kolom
+        $sheet->setCellValue('A1', 'Name');
+        $sheet->setCellValue('B1', 'NIP');
+        $sheet->setCellValue('C1', 'Email');
+        $sheet->setCellValue('D1', 'Password');
+
+        // Isi data
+        $row = 2;
+        foreach ($akuns as $akun) {
+            $sheet->setCellValue('A' . $row, $akun->name);
+            $sheet->setCellValue('B' . $row, $akun->nip);
+            $sheet->setCellValue('C' . $row, $akun->email);
+            $sheet->setCellValue('D' . $row, $akun->password);
+            $row++;
+        }
+
+        // Simpan dan download file Excel
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'daftar_akun.xlsx';
+
+        return new StreamedResponse(function () use ($writer) {
+            $writer->save('php://output');
+        }, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment;filename="' . $fileName . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 
 }

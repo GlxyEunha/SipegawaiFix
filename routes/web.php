@@ -73,6 +73,7 @@ Route::middleware(['auth', 'role:admin_user'])->group(function () {
     Route::get('/users/{nip}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{nip}', [AdminUserController::class, 'update'])->name('admin_user.update');
     Route::delete('/users/{nip}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    Route::get('/akun/export', [AdminUserController::class, 'exportExcel'])->name('akun.export');
 });
 
 Route::middleware(['auth', 'role:pegawai'])->group(function () {

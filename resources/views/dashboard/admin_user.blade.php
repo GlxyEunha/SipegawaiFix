@@ -59,6 +59,10 @@
             </div>
         </div>
     </div>
+    <br>
+    <a href="{{ route('akun.export') }}" class="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700">
+        Export to Excel
+    </a>
 
     <div class="mt-8">
         <div class="flex flex-col">
