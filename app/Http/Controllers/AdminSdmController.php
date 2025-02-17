@@ -10,15 +10,30 @@ use Illuminate\Support\Facades\DB;
 
 class AdminSdmController extends Controller
 {
-    // Menampilkan daftar pegawai yang bisa dirolling
-    public function index()
+    public function index(Request $request)
     {
         if (Auth::user()->role !== 'admin_sdm') {
             return abort(403, 'Unauthorized action.');
         }
 
-        $users = User::all();
-        return view('dashboard.admin_sdm', compact('users'));
+        $query = User::query();
+
+        // Search
+        if ($request->has('search') && $request->get('search') != '') {
+            $query->where('name', 'like', '%' . $request->get('search') . '%')
+                ->orWhere('nip', 'like', '%' . $request->get('search') . '%')
+                ->orWhere('unit', 'like', '%' . $request->get('search') . '%');
+        }
+
+        // Filter by Golongan
+        $gol = $request->input('gol');
+        if ($gol && $gol != 'semua') {
+            $query->where('gol', $gol);
+        }
+
+        $users = $query->get();
+    
+            return view('dashboard.admin_sdm', compact('users'));
     }
 
     public function rolling()
