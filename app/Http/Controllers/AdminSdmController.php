@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\History;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class AdminSdmController extends Controller
@@ -16,8 +17,12 @@ class AdminSdmController extends Controller
             return abort(403, 'Unauthorized action.');
         }
 
-        $users = User::all();
-        return view('dashboard.admin_sdm', compact('users'));
+        $data = DB::table('users')
+        ->select('gol', DB::raw('count(*) as jumlah'))
+        ->groupBy('gol')
+        ->orderBy('gol')
+        ->get();
+        return view('dashboard.admin_sdm', compact('data'));
     }
 
     public function rolling()
