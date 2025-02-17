@@ -44,6 +44,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
     Route::get('/admin-sdm/dashboard', [AdminSdmController::class, 'index'])->name('admin_sdm.dashboard');
+    Route::get('/admin-sdm/chart', [AdminSdmController::class, 'chart'])->name('admin_sdm.chart');
     Route::get('/admin/rolling', [AdminSdmController::class, 'rolling'])->name('admin_sdm.rolling');
     Route::get('/admin/pegawai/{nip}/history', [AdminSdmController::class, 'history'])->name('pegawai.history');
     Route::get('/admin/pegawai/{nip}/rolling', [AdminSdmController::class, 'edit'])->name('pegawai.rolling.form'); // Menampilkan form rolling

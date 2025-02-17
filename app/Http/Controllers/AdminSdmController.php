@@ -35,6 +35,55 @@ class AdminSdmController extends Controller
             return view('dashboard.admin_sdm', compact('users'));
     }
 
+    public function chart()
+    {
+        if (Auth::user()->role !== 'admin_sdm') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        $data = DB::table('users')
+        ->select('gol', DB::raw('count(*) as jumlah'))
+        ->groupBy('gol')
+        ->orderBy('gol')
+        ->get();
+
+        $pendidikan = User::selectRaw('pendidikan, COUNT(*) as jumlah')
+        ->groupBy('pendidikan')
+        ->orderByRaw("FIELD(pendidikan, 'S3', 'S2', 'S1', 'DIV', 'DIII', 'DI', 'SMA')")
+        ->get();
+
+        $usia = DB::table('users')
+         ->selectRaw('
+             COUNT(*) as count,
+             CASE
+                 WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) < 25 THEN "<25"
+                 WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 26 AND 30 THEN "26-30"
+                 WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 31 AND 40 THEN "31-40"
+                 WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 41 AND 50 THEN "41-50"
+                 ELSE ">50"
+             END AS age_group
+         ')
+         ->groupBy('age_group')
+         ->get();
+
+         $gender = [
+            'Laki-laki' => User::where('jenis_kelamin', 'L')->count(),
+            'Perempuan' => User::where('jenis_kelamin', 'P')->count(),
+        ];
+
+        $jabatan = User::selectRaw('jabatan, COUNT(*) as jumlah')
+        ->groupBy('jabatan')
+        ->orderByRaw("FIELD(jabatan, 'Kepala Kantor', 'Pejabat Pengawas', 'PBC Ahli Muda', 'PBC Ahli Pertama', 'PBC Mahir', 'PBC Terampil', 'Pranata Keuangan APBN Terampil', 'Pelaksana Pemeriksa')")
+        ->get();
+
+        $agama = User::selectRaw('agama, COUNT(*) as total')
+        ->whereIn('agama', ['ISLAM', 'KRISTEN', 'KATHOLIK', 'HINDU', 'BUDHA'])
+        ->groupBy('agama')
+        ->pluck('total', 'agama');
+
+        return view('chart.index', compact('data', 'pendidikan', 'usia', 'gender', 'jabatan', 'agama'));
+    }
+
     public function rolling()
     {
         if (Auth::user()->role !== 'admin_sdm') {
