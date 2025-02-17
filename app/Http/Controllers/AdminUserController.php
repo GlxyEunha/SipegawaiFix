@@ -8,6 +8,7 @@ use App\Imports\UserImport;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\GeneratedAccount;
+use App\Models\RiwayatTugas;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -268,6 +269,77 @@ class AdminUserController extends Controller
             'Content-Disposition' => 'attachment;filename="' . $fileName . '"',
             'Cache-Control' => 'max-age=0',
         ]);
+    }
+
+    public function tambahTugas(Request $request)
+    {
+        $request->validate([
+            'nama_tugas' => 'required|string|max:255',
+            'nip' => 'required|string|unique:riwayat_tugas,nip',
+            'tanggal_mulai' => 'required|date',
+        ]);
+
+        // Create user
+        $tugas = RiwayatTugas::create([
+            'nama_tugas' => $request->nama_tugas,
+            'nip' => $request->nip,
+            'tanggal_mulai' => $request->tanggal_mulai,
+        ]);
+
+        return redirect()->route('admin_user.tugas')->with('success', 'Riwayat tugas berhasil ditambahkan!');
+    }
+
+    public function form_tugas()
+    {
+        if (Auth::user()->role !== 'admin_user') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        return view('riwayat.form_tugas');
+    }
+
+    public function index_tugas()
+    {
+        if (Auth::user()->role !== 'admin_user') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        $tugas = DB::table('users')
+        ->join('riwayat_tugas', 'users.nip', '=', 'riwayat_tugas.nip')
+        ->select('users.*', 'riwayat_tugas.nama_tugas', 'riwayat_tugas.tanggal_mulai', 'riwayat_tugas.id_tugas')
+        ->get();
+
+        return view('riwayat.index', compact('tugas'));
+    }
+
+    public function editTugas($id_tugas)
+    {
+        $tugas = RiwayatTugas::where('id_tugas', $id_tugas)->firstOrFail();
+        return view('riwayat.edit', compact('tugas'));
+    }
+
+    public function updateTugas(Request $request, $id_tugas)
+    {
+        $request->validate([
+            'nama_tugas' => 'required|string|max:255',
+            'tanggal_mulai' => 'required|date',
+        ]);
+
+        $tugas = RiwayatTugas::findOrFail($id_tugas);
+        $tugas->update([
+            'nama_tugas' => $request->nama_tugas,
+            'tanggal_mulai' => $request->tanggal_mulai,
+        ]);
+
+        return redirect()->route('admin_user.tugas')->with('success', 'Riwayat tugas berhasil diperbarui');
+    }
+
+    public function destroyTugas($id_tugas)
+    {
+        $tugas = RiwayatTugas::where('id_tugas', $id_tugas)->firstOrFail();
+        $tugas->delete();
+
+        return redirect()->route('admin_user.tugas')->with('success', 'Riwayat tugas berhasil dihapus');
     }
 
 }

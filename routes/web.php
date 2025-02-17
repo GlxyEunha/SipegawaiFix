@@ -74,6 +74,12 @@ Route::middleware(['auth', 'role:admin_user'])->group(function () {
     Route::put('/users/{nip}', [AdminUserController::class, 'update'])->name('admin_user.update');
     Route::delete('/users/{nip}', [AdminUserController::class, 'destroy'])->name('users.destroy');
     Route::get('/akun/export', [AdminUserController::class, 'exportExcel'])->name('akun.export');
+    Route::get('/daftar_tugas', [AdminUserController::class, 'index_tugas'])->name('admin_user.tugas');
+    Route::get('/form_riwayatTugas', [AdminUserController::class, 'form_tugas'])->name('admin_user.riwayatTugas');
+    Route::post('/form_riwayatTugas/store', [AdminUserController::class, 'tambahTugas'])->name('admin_user.storeRiwayatTugas');
+    Route::get('/tugas/{id_tugas}/edit', [AdminUserController::class, 'editTugas'])->name('admin_user.editTugas');
+    Route::put('/tugas/{id_tugas}', [AdminUserController::class, 'updateTugas'])->name('admin_user.updateTugas');
+    Route::delete('/tugas/{id_tugas}', [AdminUserController::class, 'destroyTugas'])->name('admin_user.destroyTugas');
 });
 
 Route::middleware(['auth', 'role:pegawai'])->group(function () {

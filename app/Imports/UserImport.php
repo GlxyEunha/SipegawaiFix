@@ -28,7 +28,7 @@ class UserImport implements ToModel, WithHeadingRow
             'lama_tg_mas_th' => $row['lama_tg_mas_th'],
             'pendidikan' => $row['pendidikan'],
             'tanggal_lahir' => $this->convertExcelDate($row['tanggal_lahir']),
-            'jenis_kelamin' => $row['jenis_kelamin'],
+            'jenis_kelamin' => $this->convertJenisKelamin($row['jenis_kelamin']),
             'agama' => $row['agama'],
         ]);
     }
@@ -52,5 +52,10 @@ class UserImport implements ToModel, WithHeadingRow
         }
 
         return null; // Jika format tidak dikenal, return null
+    }
+
+    private function convertJenisKelamin($gender)
+    {
+        return strtoupper($gender) === 'L' ? 'Laki-laki' : (strtoupper($gender) === 'P' ? 'Perempuan' : null);
     }
 }
