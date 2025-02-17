@@ -7,6 +7,7 @@ use App\Models\History;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AdminSdmController extends Controller
 {
@@ -84,5 +85,19 @@ class AdminSdmController extends Controller
         User::where('nip', $nip)->update(['unit' => $request->unit]);
 
         return redirect()->route('rolling.index')->with('success', 'Unit pegawai berhasil diubah.');
+    }
+
+    public function daftar_tugas()
+    {
+        if (Auth::user()->role !== 'admin_sdm') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        $tugas = DB::table('users')
+        ->join('riwayat_tugas', 'users.nip', '=', 'riwayat_tugas.nip')
+        ->select('users.*', 'riwayat_tugas.nama_tugas', 'riwayat_tugas.tanggal_mulai', 'riwayat_tugas.id_tugas')
+        ->get();
+
+        return view('riwayat.daftar_tugas', compact('tugas'));
     }
 }

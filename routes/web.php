@@ -61,6 +61,8 @@ Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
 
     Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');
     Route::post('/gaji/accept/{nip}', [GajiController::class, 'setujui'])->name('gaji.setujui');
+
+    Route::get('/daftar_tugas', [AdminSdmController::class, 'daftar_tugas'])->name('admin_sdm.daftar_tugas');
 });
 
 Route::middleware(['auth', 'role:admin_user'])->group(function () {
