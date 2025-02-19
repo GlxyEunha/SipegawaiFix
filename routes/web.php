@@ -65,6 +65,17 @@ Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
 
     Route::get('/daftar-tugas', [AdminSdmController::class, 'daftar_tugas'])->name('admin_sdm.daftar_tugas');
 
+    
+    Route::get('/admin-sdm/upload-data', [AdminSdmController::class, 'view_upload'])->name('admin_sdm.upload');
+    Route::post('/admin-sdm/generate-akun', [AdminSdmController::class, 'generateAccounts'])->name('admin_sdm.generateAccounts');
+    Route::post('/admin-sdm/pegawai-impor', [AdminSdmController::class, 'import'])->name('admin_sdm.impor');
+    Route::get('/admin-sdm/form_akun', [AdminSdmController::class, 'form_akun'])->name('admin_sdm.index');
+    Route::post('admin-sdm/form_akun/store', [AdminSdmController::class, 'store_form'])->name('admin_sdm.store');
+    Route::get('admin-sdm/users/{nip}/edit', [AdminSdmController::class, 'edit'])->name('admin_sdm.users.edit');
+    Route::put('admin-sdm/users/{nip}', [AdminSdmController::class, 'update'])->name('admin_sdm.update');
+    Route::delete('admin-sdm/users/{nip}', [AdminSdmController::class, 'destroy'])->name('admin_sdm.users.destroy');
+    Route::get('admin-sdm/akun/export', [AdminSdmController::class, 'exportExcel'])->name('admin_sdm.akun.export');
+
 });
 
 Route::middleware(['auth', 'role:admin_user'])->group(function () {
