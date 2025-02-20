@@ -38,8 +38,8 @@
                 </svg>
             </button>
             <div x-show="open" class="mt-2 space-y-2 bg-gray-800">
-                <a href="#" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Isi Data</a>
-                <a href="#" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Upload File</a>
+                <a href="{{ route('admin_sdm.index') }}" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Isi Data</a>
+                <a href="{{ route('admin_sdm.upload') }}" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Upload File</a>
             </div>
         </div>
 
