@@ -92,6 +92,10 @@
         </form>
     </div>
 
+    <a href="{{ route('akun.export') }}" class="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700">
+        Export to Excel
+    </a>
+
     <div class="mt-8">
         <div class="flex flex-col">
             <div class="overflow-x-auto">
@@ -102,8 +106,8 @@
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">NIP</th>
                                 <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
-                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Golongan</th>
-                                <th class="px-6 py-3 bg-gray-50"></th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">Jabatan</th>
+                                <th class="px-6 py-3 bg-gray-50">Action</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white">
@@ -115,18 +119,16 @@
                                 </td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $user->nip }}</td>
                                 <td class="px-6 py-4 border-b border-gray-200">{{ $user->unit }}</td>
-                                <td class="px-6 py-4 border-b border-gray-200">{{ $user->gol }}</td>
-                                <td class="px-6 py-4 border-b border-gray-200 text-right">
-                                    <button 
-                                        class="text-indigo-600 hover:text-indigo-900 open-modal-btn"
-                                        data-id="{{ $user->id }}" 
-                                        data-name="{{ $user->name }}"
-                                        data-nip="{{ $user->nip }}"
-                                        data-unit="{{ $user->unit }}"
-                                        data-tanggal="{{ $user->gol }}"
-                                    >
-                                        Lihat Detail
-                                    </button>
+                                <td class="px-6 py-4 border-b border-gray-200">{{ $user->jabatan }}</td>
+                                <td class="px-6 py-4 border-b border-gray-200 text-center">
+                                    <a href="{{ route('admin_sdm.users.edit', $user->nip) }}" class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded">Edit</a>
+                                    <form action="{{ route('admin_sdm.users.destroy', $user->nip) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded" onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?');">
+                                            Delete
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             @endforeach
@@ -136,71 +138,4 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal -->
-    <div id="modal" class="fixed inset-0 hidden bg-gray-600 bg-opacity-50 flex justify-center items-center">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
-            <h2 class="text-xl font-semibold">Detail Pegawai</h2>
-            <p id="modal-name" class="mt-2"></p>
-            <p id="modal-nip" class="mt-1"></p>
-            <p id="modal-unit" class="mt-1"></p>
-            <p id="modal-tanggal" class="mt-1"></p>
-            <br>
-            <form id="rolling-form" method="POST">
-                @csrf
-                <input type="hidden" name="user_id" id="modal-user-id">
-                <label for="unit" class="block text-sm font-medium text-gray-700">Pilih Unit Baru</label>
-                <select name="unit" id="unit" class="mt-1 block w-full p-2 border rounded">
-                    <option value="Subbagian Umum">Subbagian Umum</option>
-                    <option value="Seksi P2">Seksi P2</option>
-                    <option value="Seksi Adm Manifes">Seksi Adm Manifes</option>
-                    <option value="Seksi Perbendaharaan">Seksi Perbendaharaan</option>
-                    <option value="Seksi PKC I">Seksi PKC I</option>
-                    <option value="Seksi PKC II">Seksi PKC II</option>
-                    <option value="Seksi PKC III">Seksi PKC III</option>
-                    <option value="Seksi PKC IV">Seksi PKC IV</option>
-                    <option value="Seksi PKC V">Seksi PKC V</option>
-                    <option value="Seksi PKC VI">Seksi PKC VI</option>
-                    <option value="Seksi PKC VII">Seksi PKC VII</option>
-                    <option value="Seksi PLI">Seksi PLI</option>
-                    <option value="Seksi KI">Seksi KI</option>
-                    <option value="Seksi PDAD">Seksi PDAD</option>
-                    <option value="PFPD">PFPD</option>
-                </select>
-                <button type="submit" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Simpan</button>
-            </form>            
-            <button onclick="closeModal()" class="mt-2 text-red-500">Tutup</button>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Event delegation untuk tombol "Lihat Detail"
-            document.querySelectorAll('.open-modal-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    // Ambil data dari atribut data-*
-                    let id = this.getAttribute('data-id');
-                    let name = this.getAttribute('data-name');
-                    let nip = this.getAttribute('data-nip');
-                    let unit = this.getAttribute('data-unit');
-                    let tanggal = this.getAttribute('data-tanggal');
-
-                    // Isi data ke modal
-                    document.getElementById('modal-name').textContent = 'Nama: ' + name;
-                    document.getElementById('modal-nip').textContent = 'NIP: ' + nip;
-                    document.getElementById('modal-unit').textContent = 'Unit: ' + unit;
-                    document.getElementById('modal-tanggal').textContent = 'Tanggal: ' + tanggal;
-                    document.getElementById('modal-user-id').value = id;
-
-                    // Tampilkan modal
-                    document.getElementById('modal').classList.remove('hidden');
-                });
-            });
-        });
-
-        function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
-        }
-
-    </script>
 @endsection
