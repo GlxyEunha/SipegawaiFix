@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('rolling_histories', function (Blueprint $table) {
+        Schema::create('permissions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('nip')->constrained('users')->onDelete('cascade');
-            $table->string('old_unit');
-            $table->string('new_unit');
-            $table->boolean('is_accepted')->default(false);
+            $table->string('nip'); // Sesuai dengan PK users
+            $table->string('page');
             $table->timestamps();
+
+            $table->foreign('nip')->references('nip')->on('users')->onDelete('cascade');
         });
     }
 
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('rolling_histories');
+        Schema::dropIfExists('permissions');
     }
 };
