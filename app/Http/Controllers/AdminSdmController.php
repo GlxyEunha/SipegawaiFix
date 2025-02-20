@@ -241,7 +241,6 @@ class AdminSdmController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'nip' => 'required|string|unique:users,nip',
             'jabatan' => 'required|string',
             'role' => 'required|string',
             'unit' => 'required|string',
@@ -258,10 +257,9 @@ class AdminSdmController extends Controller
             'agama' => 'required|string',
         ]);
 
-        $user = User::where('nip', $nip)->firstOrFail();
+        $user = User::findOrFail($nip);
         $user->update([
             'name' => $request->name,
-            'nip' => $request->nip,
             'jabatan' => $request->jabatan,
             'role' => $request->role,
             'unit' => $request->unit,
@@ -278,7 +276,7 @@ class AdminSdmController extends Controller
             'agama' => $request->agama,
         ]);
 
-        return redirect()->view('dashboard.admin_sdm')->with('success', 'User berhasil diperbarui');
+        return redirect()->route('admin_sdm.dashboard')->with('success', 'User berhasil diperbarui');
     }
 
     public function destroy($nip)
