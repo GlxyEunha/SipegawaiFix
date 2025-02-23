@@ -63,8 +63,12 @@ Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
     Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');
     Route::post('/gaji/accept/{nip}', [GajiController::class, 'setujui'])->name('gaji.setujui');
 
-    Route::get('/daftar-tugas', [AdminSdmController::class, 'daftar_tugas'])->name('admin_sdm.daftar_tugas');
-
+    Route::get('admin_sdm/daftar-tugas', [AdminSdmController::class, 'daftar_tugas'])->name('admin_sdm.daftar_tugas');
+    Route::get('admin_sdm/form_riwayatTugas', [AdminSdmController::class, 'form_tugas'])->name('admin_sdm.riwayatTugas');
+    Route::post('admin_sdm/form_riwayatTugas/store', [AdminSdmController::class, 'tambahTugas'])->name('admin_sdm.storeRiwayatTugas');
+    Route::get('admin_sdm/tugas/{id_tugas}/edit', [AdminSdmController::class, 'editTugas'])->name('admin_sdm.editTugas');
+    Route::put('admin_sdm/tugas/{id_tugas}', [AdminSdmController::class, 'updateTugas'])->name('admin_sdm.updateTugas');
+    Route::delete('admin_sdm/tugas/{id_tugas}', [AdminSdmController::class, 'destroyTugas'])->name('admin_sdm.destroyTugas');
     
     Route::get('/admin-sdm/upload-data', [AdminSdmController::class, 'view_upload'])->name('admin_sdm.upload');
     Route::post('/admin-sdm/generate-akun', [AdminSdmController::class, 'generateAccounts'])->name('admin_sdm.generateAccounts');
@@ -76,19 +80,36 @@ Route::middleware(['auth', 'role:admin_sdm'])->group(function () {
     Route::delete('admin-sdm/users/{nip}', [AdminSdmController::class, 'destroy'])->name('admin_sdm.users.destroy');
     Route::get('admin-sdm/akun/export', [AdminSdmController::class, 'exportExcel'])->name('admin_sdm.akun.export');
 
+    Route::get('admin-sdm/rolling/pegawai', [AdminSdmController::class, 'search_filter_Rolling'])->name('admin_sdm.rolling.search_filter');
+    Route::get('admin-sdm/hasil-rolling/pegawai', [AdminSdmController::class, 'search_filter_hasilRolling'])->name('admin_sdm.hasilRolling.search_filter');
+
+    Route::get('admin-sdm/atur_menu', [AdminSdmController::class, 'atur_menu'])->name('admin_sdm.atur_menu');
+    Route::get('admin-sdm/atur_menu/{nip}/edit', [AdminSdmController::class, 'editMenu'])->name('admin_sdm.atur_menu.edit');
+    Route::put('admin-sdm/atur_menu/{nip}', [AdminSdmController::class, 'updateMenu'])->name('admin_sdm.atur_menu.update');
+
 });
 
-Route::middleware(['auth', 'role:admin_user'])->group(function () {
-    Route::get('/admin-user/dashboard', [AdminUserController::class, 'index'])->name('admin_user.dashboard');
-    Route::get('/admin-user/upload-data', [AdminUserController::class, 'view_upload'])->name('admin_user.upload');
-    Route::post('/admin-user/generate-akun', [AdminUserController::class, 'generateAccounts'])->name('admin_user.generateAccounts');
-    Route::post('/admin-user/pegawai-impor', [AdminUserController::class, 'import'])->name('admin_user.impor');
-    Route::get('/form_akun', [AdminUserController::class, 'form_akun'])->name('admin_user.index');
-    Route::post('/form_akun/store', [AdminUserController::class, 'store'])->name('admin_user.store');
-    Route::get('/users/{nip}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{nip}', [AdminUserController::class, 'update'])->name('admin_user.update');
-    Route::delete('/users/{nip}', [AdminUserController::class, 'destroy'])->name('users.destroy');
-    Route::get('/akun/export', [AdminUserController::class, 'exportExcel'])->name('akun.export');
+Route::middleware(['auth', 'role:pegawai'])->group(function () {
+    #Dashboard
+    Route::get('/pegawai/dashboard', [PegawaiController::class, 'chart'])->name('pegawai.dashboard');
+
+    #Daftar Pegawai
+    Route::get('/pegawai/daftar_pegawai', [PegawaiController::class, 'index'])->name('pegawai.daftar_pegawai');
+    Route::get('/pegawai/form', [PegawaiController::class, 'form_akun'])->name('pegawai.index');
+    Route::post('/pegawai/store', [PegawaiController::class, 'store'])->name('pegawai.store');
+    Route::get('/pegawai/{nip}/edit', [PegawaiController::class, 'edit'])->name('pegawai.edit');
+    Route::put('/pegawai/{nip}', [PegawaiController::class, 'update'])->name('pegawai.update');
+    Route::delete('/pegawai/{nip}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
+
+    # Export Akun
+    Route::get('/akun/export', [PegawaiController::class, 'exportExcel'])->name('akun.export');
+
+    # Impor-Generate Akun
+    Route::get('/pegawai/upload-data', [PegawaiController::class, 'view_upload'])->name('pegawai.upload');
+    Route::post('/pegawai/generate-akun', [PegawaiController::class, 'generateAccounts'])->name('pegawai.generateAccounts');
+    Route::post('/pegawai/pegawai-impor', [PegawaiController::class, 'import'])->name('pegawai.impor');
+
+
     Route::get('/daftar_tugas', [AdminUserController::class, 'index_tugas'])->name('admin_user.tugas');
     Route::get('/form_riwayatTugas', [AdminUserController::class, 'form_tugas'])->name('admin_user.riwayatTugas');
     Route::post('/form_riwayatTugas/store', [AdminUserController::class, 'tambahTugas'])->name('admin_user.storeRiwayatTugas');
@@ -97,14 +118,14 @@ Route::middleware(['auth', 'role:admin_user'])->group(function () {
     Route::delete('/tugas/{id_tugas}', [AdminUserController::class, 'destroyTugas'])->name('admin_user.destroyTugas');
 });
 
-Route::middleware(['auth', 'role:pegawai'])->group(function () {
-    Route::get('/pegawai/dashboard', function () {
-        return view('dashboard.pegawai');
-    })->name('pegawai.dashboard');
-});
+// Route::middleware(['auth', 'role:pegawai'])->group(function () {
+//     Route::get('/pegawai/dashboard', function () {
+//         return view('dashboard.pegawai');
+//     })->name('pegawai.dashboard');
+// });
 
-Route::middleware(['auth', 'role:pemutus'])->group(function () {
-    Route::get('/pemutus/dashboard', function () {
-        return view('dashboard.pemutus');
-    })->name('pemutus.dashboard');
-});
+// Route::middleware(['auth', 'role:pemutus'])->group(function () {
+//     Route::get('/pemutus/dashboard', function () {
+//         return view('dashboard.pemutus');
+//     })->name('pemutus.dashboard');
+// });

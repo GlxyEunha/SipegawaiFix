@@ -9,7 +9,10 @@ class Permission extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nip', 'page'];
+    protected $table = 'permissions'; // Sesuaikan dengan nama tabel di database
+    protected $primaryKey = 'nip'; // Sesuaikan jika menggunakan 'nip' sebagai primary key
+    public $timestamps = false;
+    protected $fillable = ['nip', 'dashboard', 'daftar_pegawai', 'tambah_pengguna', 'rolling', 'riwayat', 'gaji'];
 
     public function user()
     {

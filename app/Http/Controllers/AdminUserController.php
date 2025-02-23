@@ -8,6 +8,7 @@ use App\Imports\UserImport;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\GeneratedAccount;
+use App\Models\Permission;
 use App\Models\RiwayatTugas;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -209,6 +210,10 @@ class AdminUserController extends Controller
                     'nip' => $user->nip,
                     'email' => $email,
                     'password' => $password, 
+                ]);
+
+                Permission::create([
+                    'nip' => $user->nip
                 ]);
             }
 

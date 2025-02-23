@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Imports\UserImport;
 use Illuminate\Support\Str;
 use App\Models\GeneratedAccount;
+use App\Models\Permission;
 use App\Models\RiwayatTugas;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
@@ -28,22 +29,56 @@ class AdminSdmController extends Controller
 
         $query = User::query();
 
-        // Search
+        // Search (Mencari berdasarkan nama, NIP, atau unit)
         if ($request->has('search') && $request->get('search') != '') {
-            $query->where('name', 'like', '%' . $request->get('search') . '%')
-                ->orWhere('nip', 'like', '%' . $request->get('search') . '%')
-                ->orWhere('unit', 'like', '%' . $request->get('search') . '%');
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                ->orWhere('nip', 'like', '%' . $search . '%')
+                ->orWhere('unit', 'like', '%' . $search . '%');
+            });
         }
 
-        // Filter by Golongan
+        // Filter by Golongan (Menyaring data berdasarkan golongan)
         $gol = $request->input('gol');
         if ($gol && $gol != 'semua') {
             $query->where('gol', $gol);
         }
 
+        // Mengambil hasil pencarian dan filter
         $users = $query->get();
     
-            return view('dashboard.admin_sdm', compact('users'));
+        return view('dashboard.admin_sdm', compact('users'));
+    }
+
+    public function search_filter_Rolling(Request $request)
+    {
+        if (Auth::user()->role !== 'admin_sdm') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        $query = User::query();
+
+        // Search (Mencari berdasarkan nama, NIP, atau unit)
+        if ($request->has('search') && $request->get('search') != '') {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                ->orWhere('nip', 'like', '%' . $search . '%')
+                ->orWhere('unit', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Filter by Golongan (Menyaring data berdasarkan golongan)
+        $gol = $request->input('gol');
+        if ($gol && $gol != 'semua') {
+            $query->where('gol', $gol);
+        }
+
+        // Mengambil hasil pencarian dan filter
+        $users = $query->get();
+
+        return view('rolling.index', compact('users'));
     }
 
     public function chart()
@@ -156,20 +191,6 @@ class AdminSdmController extends Controller
         return redirect()->route('rolling.index')->with('success', 'Unit pegawai berhasil diubah.');
     }
 
-    public function daftar_tugas()
-    {
-        if (Auth::user()->role !== 'admin_sdm') {
-            return abort(403, 'Unauthorized action.');
-        }
-
-        $tugas = DB::table('users')
-        ->join('riwayat_tugas', 'users.nip', '=', 'riwayat_tugas.nip')
-        ->select('users.*', 'riwayat_tugas.nama_tugas', 'riwayat_tugas.tanggal_mulai', 'riwayat_tugas.id_tugas')
-        ->get();
-
-        return view('riwayat.daftar_tugas', compact('tugas'));
-    }
-
     public function store_form(Request $request)
     {
         $request->validate([
@@ -189,6 +210,9 @@ class AdminSdmController extends Controller
             'jenis_kelamin' => 'required|string',
             'tanggal_lahir' => 'required|date',
             'agama' => 'required|string',
+            'alamat' => 'required|string',
+            'no_hp' => 'required|string',
+            'no_darurat' => 'required|string',
         ]);
 
         // Generate email
@@ -219,6 +243,9 @@ class AdminSdmController extends Controller
             'jenis_kelamin' => $request->jenis_kelamin,
             'tanggal_lahir' => $request->tanggal_lahir,
             'agama' => $request->agama,
+            'alamat' => $request->alamat,
+            'no_hp' => $request->no_hp,
+            'no_darurat' => $request->no_darurat,
         ]);
 
         $generated = GeneratedAccount::create([
@@ -255,6 +282,9 @@ class AdminSdmController extends Controller
             'jenis_kelamin' => 'required|string',
             'tanggal_lahir' => 'required|date',
             'agama' => 'required|string',
+            'alamat' => 'required|string',
+            'no_hp' => 'required|string',
+            'no_darurat' => 'required|string',
         ]);
 
         $user = User::findOrFail($nip);
@@ -274,6 +304,9 @@ class AdminSdmController extends Controller
             'jenis_kelamin' => $request->jenis_kelamin,
             'tanggal_lahir' => $request->tanggal_lahir,
             'agama' => $request->agama,
+            'alamat' => $request->alamat,
+            'no_hp' => $request->no_hp,
+            'no_darurat' => $request->no_darurat,
         ]);
 
         return redirect()->route('admin_sdm.dashboard')->with('success', 'User berhasil diperbarui');
@@ -370,6 +403,33 @@ class AdminSdmController extends Controller
         ]);
     }
 
+    public function daftar_tugas(Request $request)
+    {
+        if (Auth::user()->role !== 'admin_sdm') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        // Mulai query join antara users dan riwayat_tugas
+        $query = DB::table('users')
+            ->join('riwayat_tugas', 'users.nip', '=', 'riwayat_tugas.nip')
+            ->select('users.*', 'riwayat_tugas.nama_tugas', 'riwayat_tugas.tanggal_mulai', 'riwayat_tugas.id_tugas');
+
+        // Logic Pencarian (Search)
+        if ($request->filled('search')) { // Pastikan input search ada dan tidak kosong
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('users.name', 'like', '%' . $search . '%') // Cari di users.name
+                ->orWhere('users.nip', 'like', '%' . $search . '%') // Cari di users.nip
+                ->orWhere('riwayat_tugas.nama_tugas', 'like', '%' . $search . '%'); // Cari di riwayat_tugas.nama_tugas
+            });
+        }
+
+        // Eksekusi query
+        $tugas = $query->get();
+
+        return view('riwayat.index_admin_sdm', compact('tugas'));
+    }
+
     public function tambahTugas(Request $request)
     {
         $request->validate([
@@ -385,7 +445,7 @@ class AdminSdmController extends Controller
             'tanggal_mulai' => $request->tanggal_mulai,
         ]);
 
-        return redirect()->route('admin_sdm.tugas')->with('success', 'Riwayat tugas berhasil ditambahkan!');
+        return redirect()->route('admin_sdm.daftar_tugas')->with('success', 'Riwayat tugas berhasil ditambahkan!');
     }
 
     public function form_tugas()
@@ -395,20 +455,6 @@ class AdminSdmController extends Controller
         }
 
         return view('riwayat.form_tugas_admin_sdm');
-    }
-
-    public function index_tugas()
-    {
-        if (Auth::user()->role !== 'admin_sdm') {
-            return abort(403, 'Unauthorized action.');
-        }
-
-        $tugas = DB::table('users')
-        ->join('riwayat_tugas', 'users.nip', '=', 'riwayat_tugas.nip')
-        ->select('users.*', 'riwayat_tugas.nama_tugas', 'riwayat_tugas.tanggal_mulai', 'riwayat_tugas.id_tugas')
-        ->get();
-
-        return view('riwayat.index_admin_sdm', compact('tugas'));
     }
 
     public function editTugas($id_tugas)
@@ -430,7 +476,7 @@ class AdminSdmController extends Controller
             'tanggal_mulai' => $request->tanggal_mulai,
         ]);
 
-        return redirect()->route('admin_sdm.tugas')->with('success', 'Riwayat tugas berhasil diperbarui');
+        return redirect()->route('admin_sdm.daftar_tugas')->with('success', 'Riwayat tugas berhasil diperbarui');
     }
 
     public function destroyTugas($id_tugas)
@@ -438,6 +484,51 @@ class AdminSdmController extends Controller
         $tugas = RiwayatTugas::where('id_tugas', $id_tugas)->firstOrFail();
         $tugas->delete();
 
-        return redirect()->route('admin_sdm.tugas')->with('success', 'Riwayat tugas berhasil dihapus');
+        return redirect()->route('admin_sdm.daftar_tugas')->with('success', 'Riwayat tugas berhasil dihapus');
+    }
+
+    public function atur_menu()
+    {
+        if (Auth::user()->role !== 'admin_sdm') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        $menu = DB::table('users')
+        ->join('permissions', 'users.nip', '=', 'permissions.nip')
+        ->select('users.*', 'permissions.*')
+        ->get();
+
+        return view('menu.index', compact('menu'));
+    }
+
+    public function editMenu($nip)
+    {
+        $menu = DB::table('permissions')
+        ->join('users', 'permissions.nip', '=', 'users.nip')
+        ->where('permissions.nip', $nip)
+        ->select('permissions.*', 'users.name', 'users.email')
+        ->first();
+
+        if (!$menu) {
+            abort(404);
+        }
+
+        return view('menu.edit', compact('menu'));
+    }
+
+    public function updateMenu(Request $request, $nip)
+    {
+        $menu = Permission::where('nip', $nip)->firstOrFail();
+
+        $menu->update([
+            'dashboard' => $request->input('dashboard', 0),
+            'daftar_pegawai' => $request->input('daftar_pegawai', 0),
+            'tambah_pengguna' => $request->input('tambah_pengguna', 0),
+            'rolling' => $request->input('rolling', 0),
+            'riwayat' => $request->input('riwayat', 0),
+            'gaji' => $request->input('gaji', 0),
+        ]);
+
+        return redirect()->route('admin_sdm.atur_menu')->with('success', 'Menu berhasil diperbarui!');
     }
 }

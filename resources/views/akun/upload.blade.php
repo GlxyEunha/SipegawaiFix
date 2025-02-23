@@ -23,7 +23,7 @@
         </h1>
 
         {{-- Form Import --}}
-        <form action="{{ route('admin_user.impor') }}" method="POST" enctype="multipart/form-data" class="mb-6">
+        <form action="{{ route('pegawai.impor') }}" method="POST" enctype="multipart/form-data" class="mb-6">
             @csrf
             <div class="flex items-center space-x-4">
                 <input type="file" name="file" class="border border-gray-300 p-2 rounded-lg focus:ring focus:ring-blue-300">
