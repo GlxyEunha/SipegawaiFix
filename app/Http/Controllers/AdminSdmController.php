@@ -487,16 +487,25 @@ class AdminSdmController extends Controller
         return redirect()->route('admin_sdm.daftar_tugas')->with('success', 'Riwayat tugas berhasil dihapus');
     }
 
-    public function atur_menu()
+    public function atur_menu(Request $request)
     {
         if (Auth::user()->role !== 'admin_sdm') {
             return abort(403, 'Unauthorized action.');
         }
 
-        $menu = DB::table('users')
+        $query = DB::table('users')
         ->join('permissions', 'users.nip', '=', 'permissions.nip')
-        ->select('users.*', 'permissions.*')
-        ->get();
+        ->select('users.*', 'permissions.*');
+
+        if ($request->filled('search')) { // Pastikan input search ada dan tidak kosong
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('users.name', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Eksekusi query
+        $menu = $query->get();
 
         return view('menu.index', compact('menu'));
     }
