@@ -8,23 +8,45 @@ use Carbon\Carbon;
 
 class GajiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $today = Carbon::now();
         $threshold = $today->copy()->subMonths(23); // 1 tahun 11 bulan
         $limit = $today->copy()->subMonths(24); // 2 tahun
-
-        // Ambil pegawai yang memenuhi syarat (>= 1 tahun 11 bulan dan < 2 tahun)
-        $pegawai = User::where(function ($query) use ($threshold, $limit) {
-                            $query->where('tanggal_naik_gaji', '<=', $threshold)
-                                  ->where('tanggal_naik_gaji', '>', $limit);
-                        })
-                        ->get();
-
-        $jumlahKenaikanGaji = $pegawai->count(); // Hitung jumlah pegawai
-
+    
+        // Query dasar untuk mendapatkan pegawai yang memenuhi syarat
+        $query = User::where(function ($q) use ($threshold, $limit) {
+            $q->where('tanggal_naik_gaji', '<=', $threshold)
+              ->where('tanggal_naik_gaji', '>', $limit);
+        });
+    
+        // Logic Pencarian (Search)
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%') // Cari di nama
+                  ->orWhere('nip', 'like', '%' . $search . '%') // Cari di NIP
+                  ->orWhere('unit', 'like', '%' . $search . '%') // Cari di unit
+                  ->orWhere('jabatan', 'like', '%' . $search . '%'); // Cari di jabatan
+            });
+        }
+    
+        // Logic Filter Golongan
+        if ($request->filled('gol')) {
+            $gol = $request->get('gol');
+            if ($gol !== 'semua') {
+                $query->where('gol', $gol);
+            }
+        }
+    
+        // Ambil hasil pencarian & filter
+        $pegawai = $query->get();
+    
+        // Hitung jumlah pegawai yang memenuhi syarat
+        $jumlahKenaikanGaji = $pegawai->count();
+    
         return view('gaji.index', compact('pegawai', 'jumlahKenaikanGaji'));
-    }
+    }    
 
     public static function getJumlahKenaikanGaji()
     {

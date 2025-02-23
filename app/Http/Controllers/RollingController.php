@@ -36,15 +36,34 @@ class RollingController extends Controller
         return redirect()->route('rolling.index')->with('success', 'Data rolling berhasil disimpan.');
     }
 
-    public function hasil()
+    public function hasil(Request $request)
     {
-        $rollings = RollingHistory::where('is_accepted', false)
+        // Query awal: mengambil data rolling history yang belum diterima dan join dengan tabel users
+        $query = RollingHistory::where('rolling_histories.is_accepted', false)
             ->join('users', 'rolling_histories.nip', '=', 'users.nip')
-            ->select('rolling_histories.*', 'users.*')  // Pilih kolom yang dibutuhkan
-            ->get();
+            ->select('rolling_histories.*', 'users.name', 'users.unit', 'users.gol', 'users.nip'); // Pilih kolom yang relevan
+
+        // Search (Mencari berdasarkan nama, NIP, atau unit)
+        if ($request->filled('search')) { // Gunakan filled() untuk memastikan nilai tidak kosong
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('users.name', 'like', '%' . $search . '%')
+                ->orWhere('users.nip', 'like', '%' . $search . '%')
+                ->orWhere('users.unit', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Filter by Golongan (Menyaring data berdasarkan golongan)
+        if ($request->filled('gol') && $request->get('gol') != 'semua') {
+            $query->where('users.gol', $request->get('gol'));
+        }
+
+        // Mengambil hasil pencarian dan filter
+        $rollings = $query->get();
 
         return view('rolling.hasil', compact('rollings'));
     }
+
 
     public function accept($nip)
     {

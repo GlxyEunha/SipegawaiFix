@@ -40,6 +40,9 @@ class User extends Authenticatable
         'tanggal_lahir',
         'jenis_kelamin',
         'agama',
+        'alamat',
+        'no_hp',
+        'no_darurat',
         
     ];
 
