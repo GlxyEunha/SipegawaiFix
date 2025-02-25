@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\History;
+use App\Models\Permission;
 use App\Imports\UserImport;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use App\Models\GeneratedAccount;
-use App\Models\Permission;
 use App\Models\RiwayatTugas;
+use Illuminate\Http\Request;
+use App\Models\RollingHistory;
+use App\Models\GeneratedAccount;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -400,5 +402,260 @@ class PegawaiController extends Controller
         $tugas->delete();
 
         return redirect()->route('pegawai.tugas')->with('success', 'Riwayat tugas berhasil dihapus');
+    }
+
+    public function indexRolling()
+    {
+        $users = User::all();
+        return view('rolling.index', compact('users'));
+    }
+
+    public function storeRolling(Request $request)
+    {
+        $request->validate([
+            'nip' => 'required|exists:users,nip',
+            'new_unit' => 'required'
+        ]);
+
+        $user = User::where('nip', $request->nip)->first();
+
+        RollingHistory::create([
+            'nip' => $request->nip,
+            'old_unit' => $user->unit,
+            'new_unit' => $request->new_unit,
+        ]);
+
+        return redirect()->route('rolling.index')->with('success', 'Data rolling berhasil disimpan.');
+    }
+
+    public function hasilRolling(Request $request)
+    {
+        // Query awal: mengambil data rolling history yang belum diterima dan join dengan tabel users
+        $query = RollingHistory::where('rolling_histories.is_accepted', false)
+            ->join('users', 'rolling_histories.nip', '=', 'users.nip')
+            ->select('rolling_histories.*', 'users.name', 'users.unit', 'users.gol', 'users.nip'); // Pilih kolom yang relevan
+
+        // Search (Mencari berdasarkan nama, NIP, atau unit)
+        if ($request->filled('search')) { // Gunakan filled() untuk memastikan nilai tidak kosong
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('users.name', 'like', '%' . $search . '%')
+                ->orWhere('users.nip', 'like', '%' . $search . '%')
+                ->orWhere('users.unit', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Filter by Golongan (Menyaring data berdasarkan golongan)
+        if ($request->filled('gol') && $request->get('gol') != 'semua') {
+            $query->where('users.gol', $request->get('gol'));
+        }
+
+        // Mengambil hasil pencarian dan filter
+        $rollings = $query->get();
+
+        return view('rolling.hasil', compact('rollings'));
+    }
+
+
+    public function acceptRolling($nip)
+    {
+        $rolling = RollingHistory::where('nip', $nip)->where('is_accepted', false)->first();
+
+        if ($rolling) {
+            User::where('nip', $nip)->update(['unit' => $rolling->new_unit]);
+            $rolling->update(['is_accepted' => true]);
+
+            return redirect()->route('rolling.hasil')->with('success', 'Rolling diterima dan unit diperbarui.');
+        }
+
+        return redirect()->route('rolling.hasil')->with('error', 'Data tidak ditemukan.');
+    }
+
+    public function exportExcelRolling()
+    {
+        // Ambil data dari tabel `users` dan `rolling_histories` yang memiliki nip yang sama
+        $rollings = RollingHistory::where('is_accepted', false)
+            ->join('users', 'users.nip', '=', 'rolling_histories.nip')
+            ->select('users.name', 'users.nip', 'rolling_histories.old_unit', 'rolling_histories.new_unit')
+            ->get();
+
+        // Buat spreadsheet baru
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Header kolom
+        $sheet->setCellValue('A1', 'Name');
+        $sheet->setCellValue('B1', 'NIP');
+        $sheet->setCellValue('C1', 'Unit Sekarang');
+        $sheet->setCellValue('D1', 'Unit Baru');
+
+        // Isi data
+        $row = 2;
+        foreach ($rollings as $rolling) {
+            $sheet->setCellValue('A' . $row, $rolling->name);
+            $sheet->setCellValue('B' . $row, $rolling->nip);
+            $sheet->setCellValue('C' . $row, $rolling->old_unit);
+            $sheet->setCellValue('D' . $row, $rolling->new_unit);
+            $row++;
+        }
+
+        // Simpan dan download file Excel
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'rolling_history.xlsx';
+
+        return new StreamedResponse(function () use ($writer) {
+            $writer->save('php://output');
+        }, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment;filename="' . $fileName . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    public function daftar_tugas(Request $request)
+    {
+        if (Auth::user()->role !== 'pegawai') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        // Mulai query join antara users dan riwayat_tugas
+        $query = DB::table('users')
+            ->join('riwayat_tugas', 'users.nip', '=', 'riwayat_tugas.nip')
+            ->select('users.*', 'riwayat_tugas.nama_tugas', 'riwayat_tugas.tanggal_mulai', 'riwayat_tugas.id_tugas');
+
+        // Logic Pencarian (Search)
+        if ($request->filled('search')) { // Pastikan input search ada dan tidak kosong
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('users.name', 'like', '%' . $search . '%') // Cari di users.name
+                ->orWhere('users.nip', 'like', '%' . $search . '%') // Cari di users.nip
+                ->orWhere('riwayat_tugas.nama_tugas', 'like', '%' . $search . '%'); // Cari di riwayat_tugas.nama_tugas
+            });
+        }
+
+        // Eksekusi query
+        $tugas = $query->get();
+
+        return view('riwayat.index', compact('tugas'));
+    }
+
+    public function createTugas(Request $request)
+    {
+        $request->validate([
+            'nama_tugas' => 'required|string|max:255',
+            'nip' => 'required|string|unique:riwayat_tugas,nip',
+            'tanggal_mulai' => 'required|date',
+        ]);
+
+        // Create user
+        $tugas = RiwayatTugas::create([
+            'nama_tugas' => $request->nama_tugas,
+            'nip' => $request->nip,
+            'tanggal_mulai' => $request->tanggal_mulai,
+        ]);
+
+        return redirect()->route('pegawai.tugas')->with('success', 'Riwayat tugas berhasil ditambahkan!');
+    }
+
+    public function formtugas()
+    {
+        if (Auth::user()->role !== 'pegawai') {
+            return abort(403, 'Unauthorized action.');
+        }
+
+        return view('riwayat.form_tugas');
+    }
+
+    public function edit_Tugas($id_tugas)
+    {
+        $tugas = RiwayatTugas::where('id_tugas', $id_tugas)->firstOrFail();
+        return view('riwayat.edit', compact('tugas'));
+    }
+
+    public function update_Tugas(Request $request, $id_tugas)
+    {
+        $request->validate([
+            'nama_tugas' => 'required|string|max:255',
+            'tanggal_mulai' => 'required|date',
+        ]);
+
+        $tugas = RiwayatTugas::findOrFail($id_tugas);
+        $tugas->update([
+            'nama_tugas' => $request->nama_tugas,
+            'tanggal_mulai' => $request->tanggal_mulai,
+        ]);
+
+        return redirect()->route('admin_sdm.daftar_tugas')->with('success', 'Riwayat tugas berhasil diperbarui');
+    }
+
+    public function destroy_Tugas($id_tugas)
+    {
+        $tugas = RiwayatTugas::where('id_tugas', $id_tugas)->firstOrFail();
+        $tugas->delete();
+
+        return redirect()->route('pegawai.tugas')->with('success', 'Riwayat tugas berhasil dihapus');
+    }
+
+    public function index_gaji(Request $request)
+    {
+        $today = Carbon::now();
+        $threshold = $today->copy()->subMonths(23); // 1 tahun 11 bulan
+        $limit = $today->copy()->subMonths(24); // 2 tahun
+    
+        // Query dasar untuk mendapatkan pegawai yang memenuhi syarat
+        $query = User::where(function ($q) use ($threshold, $limit) {
+            $q->where('tanggal_naik_gaji', '<=', $threshold)
+              ->where('tanggal_naik_gaji', '>', $limit);
+        });
+    
+        // Logic Pencarian (Search)
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%') // Cari di nama
+                  ->orWhere('nip', 'like', '%' . $search . '%') // Cari di NIP
+                  ->orWhere('unit', 'like', '%' . $search . '%') // Cari di unit
+                  ->orWhere('jabatan', 'like', '%' . $search . '%'); // Cari di jabatan
+            });
+        }
+    
+        // Logic Filter Golongan
+        if ($request->filled('gol')) {
+            $gol = $request->get('gol');
+            if ($gol !== 'semua') {
+                $query->where('gol', $gol);
+            }
+        }
+    
+        // Ambil hasil pencarian & filter
+        $pegawai = $query->get();
+    
+        // Hitung jumlah pegawai yang memenuhi syarat
+        $jumlahKenaikanGaji = $pegawai->count();
+    
+        return view('gaji.pegawai_index', compact('pegawai', 'jumlahKenaikanGaji'));
+    }    
+
+    public static function getJumlahKenaikanGaji()
+    {
+        $today = Carbon::now();
+        $threshold = $today->copy()->subMonths(23);
+        $limit = $today->copy()->subMonths(24);
+
+        // Hitung jumlah pegawai yang memenuhi syarat kenaikan gaji
+        return User::where('tanggal_naik_gaji', '<=', $threshold)
+                   ->where('tanggal_naik_gaji', '>', $limit)
+                   ->count();
+    }
+
+    public function setujui($nip)
+    {
+        $pegawai = User::where('nip', $nip)->first();
+        if ($pegawai) {
+            $pegawai->tanggal_naik_gaji = Carbon::parse($pegawai->tanggal_naik_gaji)->addYears(2);
+            $pegawai->save();
+        }
+
+        return redirect()->route('pegawai.gaji.index')->with('success', 'Kenaikan gaji telah disetujui.');
     }
 }

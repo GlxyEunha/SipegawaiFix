@@ -11,7 +11,7 @@
     <div class="flex justify-between items-center w-full">
     <div class="flex items-left">
             {{-- Search & Filter --}}
-            <form id="search-form" method="GET" action="{{ route('rolling.hasil') }}" class="flex items-center">
+            <form id="search-form" method="GET" action="{{ route('rollingPegawai.hasil') }}" class="flex items-center">
                 {{-- Search --}}
                 <div class="relative mx-4 lg:mx-0">
                     <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
@@ -47,7 +47,7 @@
             </form>
         </div>
 
-        <a href="{{ route('rolling.export') }}" class="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700">
+        <a href="{{ route('rollingPegawai.export') }}" class="inline-block px-6 py-3 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700">
         Export to Excel
         </a>
 
@@ -83,7 +83,7 @@
                                     {{-- <button class="approve-btn text-sm text-green-700 bg-green-100 hover:bg-green-200 rounded border border-green-500 px-2 py-1" data-nip="{{ $r->nip }}">
                                         Setujui
                                     </button> --}}
-                                    <form action="{{ route('rolling.accept', ['nip' => $r->nip]) }}" method="POST">
+                                    <form action="{{ route('rollingPegawai.accept', ['nip' => $r->nip]) }}" method="POST">
                                         @csrf
                                         <button class="text-green-600 hover:text-green-900">
                                             Setujui

@@ -109,13 +109,28 @@ Route::middleware(['auth', 'role:pegawai'])->group(function () {
     Route::post('/pegawai/generate-akun', [PegawaiController::class, 'generateAccounts'])->name('pegawai.generateAccounts');
     Route::post('/pegawai/pegawai-impor', [PegawaiController::class, 'import'])->name('pegawai.impor');
 
+    # Rolling
+    Route::get('/pegawai/rolling', [PegawaiController::class, 'indexRolling'])->name('rollingPegawai.index');
+    Route::post('/pegawai/rolling/store', [PegawaiController::class, 'storeRolling'])->name('rollingPegawai.store');
+    Route::get('/pegawai/hasil', [PegawaiController::class, 'hasilRolling'])->name('rollingPegawai.hasil');
+    Route::post('/pegawai/hasil/accept/{nip}', [PegawaiController::class, 'acceptRolling'])->name('rollingPegawai.accept');
+    Route::get('/pegawai/hasil/export', [PegawaiController::class, 'exportExcelRolling'])->name('rollingPegawai.export');
 
-    Route::get('/daftar_tugas', [AdminUserController::class, 'index_tugas'])->name('admin_user.tugas');
-    Route::get('/form_riwayatTugas', [AdminUserController::class, 'form_tugas'])->name('admin_user.riwayatTugas');
-    Route::post('/form_riwayatTugas/store', [AdminUserController::class, 'tambahTugas'])->name('admin_user.storeRiwayatTugas');
-    Route::get('/tugas/{id_tugas}/edit', [AdminUserController::class, 'editTugas'])->name('admin_user.editTugas');
-    Route::put('/tugas/{id_tugas}', [AdminUserController::class, 'updateTugas'])->name('admin_user.updateTugas');
-    Route::delete('/tugas/{id_tugas}', [AdminUserController::class, 'destroyTugas'])->name('admin_user.destroyTugas');
+    # Search Filter Rolling
+    Route::get('pegawai/seacrh-rolling', [AdminSdmController::class, 'search_filter_Rolling'])->name('admin_sdm.rolling.search_filter');
+    Route::get('pegawai/hasil-rolling', [AdminSdmController::class, 'search_filter_hasilRolling'])->name('admin_sdm.hasilRolling.search_filter');
+
+    # Riwayat Tugas
+    Route::get('pegawai/daftar_tugas', [PegawaiController::class, 'daftar_tugas'])->name('pegawai.tugas');
+    Route::get('pegawai/form_riwayatTugas', [PegawaiController::class, 'formtugas'])->name('pegawai.riwayatTugas');
+    Route::post('pegawai/form_riwayatTugas/store', [PegawaiController::class, 'createTugas'])->name('pegawai.storeRiwayatTugas');
+    Route::get('pegawai/tugas/{id_tugas}/edit', [PegawaiController::class, 'edit_Tugas'])->name('pegawai.editTugas');
+    Route::put('pegawai/tugas/{id_tugas}', [PegawaiController::class, 'update_Tugas'])->name('pegawai.updateTugas');
+    Route::delete('pegawai/tugas/{id_tugas}', [PegawaiController::class, 'destroy_Tugas'])->name('pegawai.destroyTugas');
+
+    # Gaji
+    Route::get('pegawai/gaji', [PegawaiController::class, 'index_gaji'])->name('pegawai.gaji.index');
+    Route::post('pegawai/gaji/accept/{nip}', [PegawaiController::class, 'setujui'])->name('pegawai.gaji.setujui');
 });
 
 // Route::middleware(['auth', 'role:pegawai'])->group(function () {

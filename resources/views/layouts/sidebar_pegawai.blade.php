@@ -72,8 +72,8 @@
                 </svg>
             </button>
             <div x-show="open" class="mt-2 space-y-2 bg-gray-800">
-                <a href="{{ route('rolling.index') }}" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Rolling</a>
-                <a href="{{ route('rolling.hasil') }}" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Hasil</a>
+                <a href="{{ route('rollingPegawai.index') }}" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Rolling</a>
+                <a href="{{ route('rollingPegawai.hasil') }}" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Hasil</a>
             </div>
         </div>
         @endif
@@ -93,14 +93,14 @@
                 </svg>
             </button>
             <div x-show="open" class="mt-2 space-y-2 bg-gray-800">
-                <a href="{{ route('admin_sdm.daftar_tugas') }}" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Riwayat Tugas</a>
+                <a href="{{ route('pegawai.tugas') }}" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Riwayat Tugas</a>
                 <a href="#" class="block px-8 py-2 text-gray-400 hover:bg-gray-700 hover:text-gray-100">Riwayat Pendidikan</a>
             </div>
         </div>
         @endif
 
         @if($permissions && $permissions->gaji == 1)
-        <a class="flex items-center px-6 py-2 mt-4 text-gray-100 bg-gray-700 bg-opacity-25" href="{{ route('gaji.index') }}">
+        <a class="flex items-center px-6 py-2 mt-4 text-gray-100 bg-gray-700 bg-opacity-25" href="{{ route('pegawai.gaji.index') }}">
             <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
